@@ -5,85 +5,64 @@ include("_includes/dbconnect.inc");
 include("_includes/functions.inc");
 
 
-// check logged in
-if (isset($_SESSION['id'])) {
+echo template("templates/partials/header.php");
+echo template("templates/partials/nav.php");
 
-   echo template("templates/partials/header.php");
-   echo template("templates/partials/nav.php");
+if (isset($_POST['submit']) && count($_FILES) > 0)
+{
+    if (is_uploaded_file($_FILES['studentphotos']['tmp_name'])) 
+    {
+        $imgData = addslashes(file_get_contents($_FILES['studentphotos']['tmp_name']));
+        $imageProperties = getimageSize($_FILES['studentphotos']['tmp_name']);
 
-   // if the form has been submitted
-   if (isset($_POST['submit'])) {
+        //$studentID = mysqli_real_escape_string($conn, $_POST['studentid']);
+        $studentID = $_POST['studentid'];
+        $password = $_POST['password'];
+        //HASHED THE PASSWORD
+        $hashPassword = mysqli_real_escape_string($conn,password_hash($password,PASSWORD_DEFAULT));
+        $DOB = mysqli_real_escape_string($conn,$_POST['dob']);
+        $firstname = mysqli_real_escape_string($conn,$_POST['firstname']);
+        $lastname = mysqli_real_escape_string($conn, $_POST['lastname']) ;
+        $house = mysqli_real_escape_string($conn, $_POST['house']);
+        $town = mysqli_real_escape_string($conn,$_POST['town']) ;
+        $county = mysqli_real_escape_string($conn, $_POST['county']);
+        $country = mysqli_real_escape_string($conn,$_POST['country']);
+        $postcode = mysqli_real_escape_string($conn,$_POST['postcode']);
 
-    //var_dump ($_POST);
+        $sql = "INSERT INTO student (studentid, password, dob, firstname, lastname, house, town, county, country, postcode, studentphoto)
+        VALUES ('$studentID', '$hashPassword', '$DOB','$firstname', '$lastname', '$house','$town', '$county', '$country','$postcode', '{$imgData}')";
 
-      // build an sql statment to update the student details
-      //$sql = "update student set firstname ='" . $_POST['txtfirstname'] . "',";
-      //$sql .= "lastname ='" . $_POST['txtlastname']  . "',";
-      //$sql .= "house ='" . $_POST['txthouse']  . "',";
-      //$sql .= "town ='" . $_POST['txttown']  . "',";
-      //$sql .= "county ='" . $_POST['txtcounty']  . "',";
-      //$sql .= "country ='" . $_POST['txtcountry']  . "',";
-      //$sql .= "postcode ='" . $_POST['txtpostcode']  . "' ";
-      //$sql .= "where studentid = '" . $_SESSION['id'] . "';";
-      $sql = "INSERT INTO student (studentid, password, dob, firstname, lastname, house, town, county, country, postcode)
-      VALUES ('{$_POST['studentid']}', '{$_POST['password']}', '{$_POST['dob']}', '{$_POST['firstname']}', '{$_POST['lastname']}', '{$_POST['house']}', '{$_POST['town']}', '{$_POST['county']}', '{$_POST['country']}',
-       '{$_POST['postcode']}')"; 
-
-      //echo $sql;
-
-      echo $result = mysqli_query($conn,$sql);
-
-      $data['content'] = "<p>Student record has been added!</p>";
-
-   }
-   else {
-
-      // using <<<EOD notation to allow building of a multi-line string
-      // see http://stackoverflow.com/questions/6924193/what-is-the-use-of-eod-in-php for info
-      // also http://stackoverflow.com/questions/8280360/formatting-an-array-value-inside-a-heredoc
-      $data['content'] = <<<EOD
-
-   <h2>Add New Student</h2>
-   <form name="frmdetails" action="" method="post">
-
-   StudentID:
-   <input name ="studentid" type="text" value="" /><br/>
-
-   Password:
-   <input name ="password" type="text" value="" /><br/>
-
-   Date Of Birth:
-   <input type ="date" name="dob" value="" /><br/>
-
-   First Name :
-   <input name="firstname" type="text" value="" /><br/>
-   Surname :
-   <input name="lastname" type="text"  value="" /><br/>
-
-   Number and Street :
-   <input name="house" type="text"  value="" /><br/>
-   Town :
-   <input name="town" type="text"  value="" /><br/>
-   County :
-   <input name="county" type="text"  value="" /><br/>
-   Country :
-   <input name="country" type="text"  value="" /><br/>
-   Postcode :
-   <input name="postcode" type="text"  value="" /><br/>
-   <input type="submit" value="Save" name="submit"/>
-   </form>
-
-EOD;
-
-   }
-
-   // render the template
-   echo template("templates/default.php", $data);
-
-} else {
-   header("Location: index.php");
+        $result = mysqli_query($conn, $sql);
+        
+        if ($result) 
+        {
+        echo "<h2>You have added a new record!</h2>";
+        }  
+    }
 }
-
-echo template("templates/partials/footer.php");
-
 ?>
+<h2>Add New Student</h2>
+<form name="frmLogin" action="addstudent.php" method="post" enctype= "multipart/form-data"><br/>
+        Student ID:
+        <input name="studentid" type="text" value= "" maxlength ="8"/><br/> 
+        Student Password:  
+        <input name="password" type="text" value= ""/><br/>
+        Student DOB:
+        <input type="date" name="dob" value=""/><br/>
+        First Name :
+        <input name="firstname" type="text" value="" /><br/>
+        Surname :
+        <input name="lastname" type="text"  value="" /><br/>
+        Number and Street :
+        <input name="house" type="text"  value="" /><br/>
+        Town :
+        <input name="town" type="text"  value="" /><br/>
+        County :
+        <input name="county" type="text"  value="" /><br/>
+        Country :
+        <input name="country" type="text"  value="" /><br/>
+        Postcode :
+        <input name="postcode" type="text"  value="" /><br/>
+        <input type="file" name = "studentphotos" id="studentphotos" accept="image/png, image/jpeg " value = "Browse"><br/>
+        <input type='submit' name='submit' value='Submit' class='submitButton'/>
+        </form>
